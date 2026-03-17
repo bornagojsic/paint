@@ -68,6 +68,7 @@
 
 from typing import TYPE_CHECKING
 
+from graphical_objects.composite import CompositeShape
 from graphical_objects.listener import GraphicalObjectListener
 
 if TYPE_CHECKING:
@@ -197,7 +198,10 @@ class DocumentModel(GraphicalObjectListener):
                     objects.remove(go)
                     if not objects:
                         del self._z_index_objects[z_index]
-                    self._z_index_objects.setdefault(z_index + 1, []).append(go)
+                    if z_index == -1:
+                        self._objects.append(go)
+                    else:
+                        self._z_index_objects.setdefault(z_index + 1, []).append(go)
                     break
 
         self.notify_listeners()
@@ -216,8 +220,12 @@ class DocumentModel(GraphicalObjectListener):
                     objects.remove(go)
                     if not objects:
                         del self._z_index_objects[z_index]
-                    z_objs = self._z_index_objects.setdefault(z_index - 1, [])
-                    self._z_index_objects[z_index - 1] = [go, *z_objs]
+                    if z_index == 1:
+                        objs = self._objects
+                        self._objects = [go, *objs]
+                    else:
+                        z_objs = self._z_index_objects.setdefault(z_index - 1, [])
+                        self._z_index_objects[z_index - 1] = [go, *z_objs]
                     break
 
         self.notify_listeners()
@@ -225,7 +233,7 @@ class DocumentModel(GraphicalObjectListener):
     def find_selected_graphical_object(self, mouse_point: Point):
         closest_object = None
         closest_distance = float("inf")
-        for obj in self.__sorted_objects():
+        for obj in list(self.__sorted_objects())[::-1]:
             distance = obj.selection_distance(mouse_point)
             if distance < closest_distance and distance <= self.SELECTION_PROXIMITY:
                 closest_distance = distance
@@ -237,7 +245,44 @@ class DocumentModel(GraphicalObjectListener):
         closest_distance = float("inf")
         for i in range(object.get_number_of_hot_points()):
             distance = object.get_hot_point_distance(i, mouse_point)
+            if distance == 0:
+                return i
             if distance < closest_distance and distance <= self.SELECTION_PROXIMITY:
                 closest_distance = distance
                 closest_hot_point_index = i
         return closest_hot_point_index
+
+    def group_selected_objects(self):
+        selected_objects = self.get_selected_objects()
+        print(f"Grouping selected objects: {selected_objects}")
+        if len(selected_objects) <= 1:
+            return
+
+        composite = CompositeShape(selected_objects)
+        for obj in selected_objects:
+            obj.remove_graphical_object_listener(self)
+            self.remove_graphical_object(obj)
+        self.add_graphical_object(composite)
+        composite.set_selected(True)
+        composite.add_graphical_object_listener(self)
+
+        self.notify_listeners()
+
+    def ungroup_selected_objects(self):
+        selected_objects = self.get_selected_objects()
+        if len(selected_objects) != 1:
+            return
+
+        selected_object = selected_objects[0]
+        if not isinstance(selected_object, CompositeShape):
+            return
+
+        for child in selected_object.get_shapes():
+            child_copy = child.duplicate()
+            self.add_graphical_object(child_copy)
+            child_copy.add_graphical_object_listener(self)
+            child_copy.set_selected(True)
+
+        self.remove_graphical_object(selected_object)
+
+        self.notify_listeners()

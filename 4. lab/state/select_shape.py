@@ -52,7 +52,11 @@ class SelectShapeState(State):
         print(f"Key pressed: {key_code}")
         selected_objects = self._document_model.get_selected_objects()
 
-        if key_code == 113:  # left arrow key
+        if key_code == 42:  # G key
+            self._document_model.group_selected_objects()
+        elif key_code == 30:  # U key
+            self._document_model.ungroup_selected_objects()
+        elif key_code == 113:  # left arrow key
             for obj in selected_objects:
                 obj.translate(Point(-1, 0))
         elif key_code == 114:  # right arrow key
