@@ -51,32 +51,25 @@ class SelectShapeState(State):
     def key_pressed(self, key_code: int):
         print(f"Key pressed: {key_code}")
         selected_objects = self._document_model.get_selected_objects()
-        print(f"Currently selected objects: {selected_objects}")
-        if len(selected_objects) != 1:
-            return
-
-        selected_object = selected_objects[0]
 
         if key_code == 113:  # left arrow key
-            print(f"Moving selected object left: {selected_object}")
-            selected_object.translate(Point(-1, 0))
+            for obj in selected_objects:
+                obj.translate(Point(-1, 0))
         elif key_code == 114:  # right arrow key
-            print(f"Moving selected object right: {selected_object}")
-            selected_object.translate(Point(1, 0))
+            for obj in selected_objects:
+                obj.translate(Point(1, 0))
         elif key_code == 111:  # up arrow key
-            print(f"Moving selected object up: {selected_object}")
-            selected_object.translate(Point(0, -1))
+            for obj in selected_objects:
+                obj.translate(Point(0, -1))
         elif key_code == 116:  # down arrow key
-            print(f"Moving selected object down: {selected_object}")
-            selected_object.translate(Point(0, 1))
+            for obj in selected_objects:
+                obj.translate(Point(0, 1))
         elif key_code == 21 or key_code == 86:  # plus key
-            print("Plus key pressed")
-            print(f"Increasing Z index of: {selected_object}")
-            self._document_model.increase_z(selected_object)
+            for obj in selected_objects:
+                self._document_model.increase_z(obj)
         elif key_code == 61 or key_code == 82:  # minus key
-            print("Minus key pressed")
-            print(f"Decreasing Z index of: {selected_object}")
-            self._document_model.decrease_z(selected_object)
+            for obj in selected_objects:
+                self._document_model.decrease_z(obj)
 
     def after_draw(self, r: Renderer, go: Optional[GraphicalObject] = None):
         if go and go.is_selected():
