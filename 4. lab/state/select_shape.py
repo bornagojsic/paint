@@ -1,0 +1,98 @@
+from typing import TYPE_CHECKING, Optional
+
+from document_model import DocumentModel
+from point import Point
+from state.interface import State
+
+if TYPE_CHECKING:
+    from graphical_objects.interface import GraphicalObject
+    from renderer import Renderer
+
+
+class SelectShapeState(State):
+    def __init__(self, document_model: DocumentModel):
+        self._document_model = document_model
+
+    def __unselect_all(self):
+        for obj in self._document_model.get_selected_objects():
+            obj.set_selected(False)
+            for i in range(obj.get_number_of_hot_points()):
+                obj.set_hot_point_selected(i, False)
+
+    def mouse_down(self, mouse_point: Point, shift_down: bool, ctrl_down: bool):
+        selected_object = self._document_model.find_selected_graphical_object(
+            mouse_point
+        )
+        if not ctrl_down:
+            self.__unselect_all()
+        if selected_object:
+            print(f"Selected object: {selected_object}")
+            selected_object.set_selected(True)
+            selected_hp = self._document_model.find_selected_hot_point(
+                selected_object, mouse_point
+            )
+            if selected_hp != -1:
+                print(f"Selected hot point in object: {selected_object}")
+                selected_object.set_hot_point_selected(selected_hp, True)
+
+    def mouse_up(self, mouse_point: Point, shift_down: bool, ctrl_down: bool): ...
+
+    def mouse_dragged(self, mouse_point: Point):
+        print(f"Mouse dragged to: {mouse_point}")
+        selected_objects = self._document_model.get_selected_objects()
+        if selected_objects:
+            for obj in selected_objects:
+                hp_count = obj.get_number_of_hot_points()
+                for i in range(hp_count):
+                    if obj.is_hot_point_selected(i):
+                        obj.set_hot_point(i, mouse_point)
+                        break
+
+    def key_pressed(self, key_code: int):
+        print(f"Key pressed: {key_code}")
+        selected_objects = self._document_model.get_selected_objects()
+        print(f"Currently selected objects: {selected_objects}")
+        if len(selected_objects) != 1:
+            return
+
+        selected_object = selected_objects[0]
+
+        if key_code == 113:  # left arrow key
+            print(f"Moving selected object left: {selected_object}")
+            selected_object.translate(Point(-1, 0))
+        elif key_code == 114:  # right arrow key
+            print(f"Moving selected object right: {selected_object}")
+            selected_object.translate(Point(1, 0))
+        elif key_code == 111:  # up arrow key
+            print(f"Moving selected object up: {selected_object}")
+            selected_object.translate(Point(0, -1))
+        elif key_code == 116:  # down arrow key
+            print(f"Moving selected object down: {selected_object}")
+            selected_object.translate(Point(0, 1))
+        elif key_code == 21 or key_code == 86:  # plus key
+            print("Plus key pressed")
+            print(f"Increasing Z index of: {selected_object}")
+            self._document_model.increase_z(selected_object)
+        elif key_code == 61 or key_code == 82:  # minus key
+            print("Minus key pressed")
+            print(f"Decreasing Z index of: {selected_object}")
+            self._document_model.decrease_z(selected_object)
+
+    def after_draw(self, r: Renderer, go: Optional[GraphicalObject] = None):
+        if go and go.is_selected():
+            print(f"Drawing selection outline for: {go}")
+            r.draw_bounding_box(go.get_bounding_box().get_points())
+        elif go is None:
+            selected_objects = self._document_model.get_selected_objects()
+            if len(selected_objects) == 1:
+                selected_object = selected_objects[0]
+                hot_points = [
+                    selected_object.get_hot_point(i)
+                    for i in range(selected_object.get_number_of_hot_points())
+                ]
+                print(
+                    f"Drawing hot points for: {selected_object}, hot points: {hot_points}"
+                )
+                r.draw_hot_points(hot_points)
+
+    def on_leaving(self): ...

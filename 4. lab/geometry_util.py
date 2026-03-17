@@ -10,7 +10,7 @@ class GeometryUtil:
         return sqrt(diff_vector.get_x() ** 2 + diff_vector.get_y() ** 2)
 
     @staticmethod
-    def distance_from_line_segment(s, e, p):
+    def distance_from_line_segment(s: Point, e: Point, p: Point) -> float:
         line = e.difference(s)
         line_length = GeometryUtil.distance_from_point(s, e)
         p_s = p.difference(s)
@@ -24,6 +24,5 @@ class GeometryUtil:
         pt = GeometryUtil.distance_from_point(p, t)
         ps = GeometryUtil.distance_from_point(p, s)
         pe = GeometryUtil.distance_from_point(p, e)
-        print(pt, ps, pe)
 
         return min(pt, ps, pe)

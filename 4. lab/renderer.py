@@ -9,3 +9,9 @@ class Renderer(ABC):
 
     @abstractmethod
     def fill_polygon(self, points: list[Point]): ...
+
+    @abstractmethod
+    def draw_bounding_box(self, points: list[Point]): ...
+
+    @abstractmethod
+    def draw_hot_points(self, points: list[Point]): ...

@@ -34,16 +34,24 @@ class Canvas(tk.Frame, DocumentModelListener):
 
         self._canvas.focus_set()
 
-        self._canvas.bind("w", lambda e: self._gui.destroy())
-        self._canvas.bind(
-            "<Button-1>",
-            lambda e: self._gui.get_state().mouse_down(
-                Point(e.x, e.y),
-                shift_down=self._shift_used(e),
-                ctrl_down=self._ctrl_used(e),
-            ),
+        self._canvas.bind("w", lambda _: self._gui.destroy())
+        self._canvas.bind("<Button-1>", self._on_mouse_down)
+        self._canvas.bind("<B1-Motion>", self._on_mouse_dragged)
+        self._canvas.bind("<Escape>", lambda _: self._gui.set_state(IdleState()))
+        self._canvas.bind("<Key>", self._on_key_pressed)
+
+    def _on_mouse_down(self, event: tk.Event):
+        self._gui.get_state().mouse_down(
+            Point(event.x, event.y),
+            shift_down=self._shift_used(event),
+            ctrl_down=self._ctrl_used(event),
         )
-        self._canvas.bind("<Escape>", lambda e: self._gui.set_state(IdleState()))
+
+    def _on_mouse_dragged(self, event: tk.Event):
+        self._gui.get_state().mouse_dragged(Point(event.x, event.y))
+
+    def _on_key_pressed(self, event: tk.Event):
+        self._gui.get_state().key_pressed(event.keycode)
 
     def _shift_used(self, event: tk.Event) -> bool:
         return (event.state & 0x0001) != 0
@@ -67,6 +75,8 @@ class Canvas(tk.Frame, DocumentModelListener):
         r = self._get_renderer()
         for o in self._document_model.list():
             o.render(r)
+            self._gui.get_state().after_draw(r, o)
+        self._gui.get_state().after_draw(r)
 
     def document_change(self):
         self.paint_component()

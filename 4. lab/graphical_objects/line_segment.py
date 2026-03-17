@@ -1,11 +1,12 @@
 from typing import TYPE_CHECKING
 
+from geometry_util import GeometryUtil
 from graphical_objects.abstract_go import AbstractGraphicalObject
 from point import Point
+from rectangle import Rectangle
 
 if TYPE_CHECKING:
     from graphical_objects.interface import GraphicalObject
-    from rectangle import Rectangle
     from renderer import Renderer
 
 
@@ -30,11 +31,18 @@ class LineSegment(AbstractGraphicalObject):
         start_point, end_point = self._hot_points
         r.draw_line(start_point, end_point)
 
+    def selection_distance(self, mouse_point: Point) -> float:
+        return GeometryUtil.distance_from_line_segment(*self._hot_points, mouse_point)
+
+    def get_bounding_box(self) -> Rectangle:
+        right_hot_point, down_hot_point = self._hot_points
+        center = (down_hot_point + right_hot_point) * 0.5
+        a = abs(center.get_x() - right_hot_point.get_x())
+        b = abs(center.get_y() - down_hot_point.get_y())
+        top_left = Point(center.get_x() - a, center.get_y() - b)
+        return Rectangle(*top_left.get(), 2 * a, 2 * b)
+
     ## TODO: Implementirati ...
-    def selection_distance(self, mouse_point: Point) -> float: ...
-
-    def get_bounding_box(self) -> Rectangle: ...
-
     def load(self, stack: list[GraphicalObject], data: str): ...
 
     def save(self, rows: list[str]): ...

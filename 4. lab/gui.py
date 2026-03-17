@@ -5,6 +5,7 @@ from canvas import Canvas
 from document_model import DocumentModel
 from state.add_shape import AddShapeState
 from state.idle import IdleState
+from state.select_shape import SelectShapeState
 
 if TYPE_CHECKING:
     from graphical_objects.interface import GraphicalObject
@@ -47,11 +48,14 @@ class GUI:
             **{
                 self.__get_shape_button_name(o): {
                     "name": o.get_shape_name(),
-                    "command": lambda o=o: self.set_state_add_shape(o),
+                    "command": lambda o=o: self.__on_shape_click(o),
                 }
                 for o in self._graphical_objects
             },
-            "select": {"name": "Selektiraj", "command": lambda: ...},
+            "select": {
+                "name": "Selektiraj",
+                "command": self.__on_select_click,
+            },
             "eraser": {"name": "Brisalo", "command": lambda: ...},
         }
 
@@ -70,6 +74,9 @@ class GUI:
         return self.__current_state
 
     def set_state(self, state: State, new_active_button: Optional[tk.Button] = None):
+        print(
+            f"Setting state to: {state.__class__.__name__}, new active button: {new_active_button}"
+        )
         if new_active_button is not None:
             if new_active_button == self._active_button:
                 return
@@ -80,12 +87,17 @@ class GUI:
 
         self.__current_state = state
 
-    def set_state_add_shape(self, prototype: GraphicalObject):
+    def __on_shape_click(self, prototype: GraphicalObject):
         new_active_button = self._toolbar_buttons[
             self.__get_shape_button_name(prototype)
         ]
         self.set_state(
             AddShapeState(self._document_model, prototype), new_active_button
+        )
+
+    def __on_select_click(self):
+        self.set_state(
+            SelectShapeState(self._document_model), self._toolbar_buttons["select"]
         )
 
     def destroy(self):

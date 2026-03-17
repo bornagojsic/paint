@@ -80,19 +80,31 @@ class DocumentModel(GraphicalObjectListener):
     SELECTION_PROXIMITY: float = 10
 
     def __init__(self):
-        self._objects = []
+        self._objects: list[GraphicalObject] = []
+        self._z_index_objects: dict[int, list[GraphicalObject]] = {}
         self._ro_objects = tuple(self._objects)
-        self._listeners = []
-        self._selected_objects = []
+        self._listeners: list[DocumentModelListener] = []
+        self._selected_objects: list[GraphicalObject] = []
         self._ro_selected_objects = tuple(self._selected_objects)
 
-    def clear(self): ...
+    def clear(self):
+        for obj in self.__sorted_objects():
+            obj.remove_graphical_object_listener(self)
+        self._objects.clear()
+        self._z_index_objects.clear()
+        self._ro_objects = tuple(self.__sorted_objects())
+        self._selected_objects.clear()
+        self._ro_selected_objects = tuple(self._selected_objects)
+        self.notify_listeners()
 
     def add_graphical_object(self, obj: GraphicalObject):
+        if obj in self.__sorted_objects():
+            return
+
         print(f"Adding {obj} to model")
-        if obj not in self._objects:
+        if obj not in self.__sorted_objects():
             self._objects.append(obj)
-            self._ro_objects = tuple(self._objects)
+            self._ro_objects = tuple(self.__sorted_objects())
             obj.add_graphical_object_listener(self)
             self.notify_listeners()
 
@@ -100,11 +112,61 @@ class DocumentModel(GraphicalObjectListener):
         print(f"Graphical object changed: {go}")
         self.notify_listeners()
 
-    def graphical_object_selection_changed(self, go: GraphicalObject): ...
+    def graphical_object_selection_changed(self, go: GraphicalObject):
+        print(f"Graphical object selection changed: {go}")
+        if go.is_selected():
+            if go not in self._selected_objects:
+                self._selected_objects.append(go)
+                self._ro_selected_objects = tuple(self._selected_objects)
+        else:
+            if go in self._selected_objects:
+                self._selected_objects.remove(go)
+                self._ro_selected_objects = tuple(self._selected_objects)
+        self.notify_listeners()
 
-    def remove_graphical_object(self, obj: GraphicalObject): ...
+    def remove_graphical_object(self, obj: GraphicalObject):
+        if obj not in self.__sorted_objects():
+            return
+
+        if obj in self._objects:
+            self._objects.remove(obj)
+            self._ro_objects = tuple(self.__sorted_objects())
+            obj.remove_graphical_object_listener(self)
+        else:
+            for z_index, objects in self._z_index_objects.items():
+                if obj in objects:
+                    objects.remove(obj)
+                    obj.remove_graphical_object_listener(self)
+                    if not objects:
+                        del self._z_index_objects[z_index]
+                    break
+
+        if obj in self._selected_objects:
+            self._selected_objects.remove(obj)
+            self._ro_selected_objects = tuple(self._selected_objects)
+
+        self.notify_listeners()
+
+    def __sorted_objects(self):
+        if not self._z_index_objects:
+            yield from self._objects
+            return
+
+        need_to_yield_base_objects = True
+
+        for z_index in sorted(self._z_index_objects.keys()):
+            if z_index >= 0:
+                need_to_yield_base_objects = False
+                yield from self._objects
+            for obj in self._z_index_objects[z_index]:
+                yield obj
+
+        if need_to_yield_base_objects:
+            yield from self._objects
 
     def list(self):
+        self._ro_objects = tuple(self.__sorted_objects())
+        print("[INFO]:\tListing objects in model: ", len(self._ro_objects))
         return self._ro_objects
 
     def add_document_model_listener(self, listener: DocumentModelListener):
@@ -119,12 +181,63 @@ class DocumentModel(GraphicalObjectListener):
         for listener in self._listeners:
             listener.document_change()
 
-    def get_selected_objects(self): ...
+    def get_selected_objects(self):
+        return self._ro_selected_objects
 
-    def increase_z(self, go: GraphicalObject): ...
+    def increase_z(self, go: GraphicalObject):
+        if go not in self.__sorted_objects():
+            return
 
-    def decrease_z(self, go: GraphicalObject): ...
+        if go in self._objects:
+            self._objects.remove(go)
+            self._z_index_objects.setdefault(1, []).append(go)
+        else:
+            for z_index, objects in self._z_index_objects.items():
+                if go in objects:
+                    objects.remove(go)
+                    if not objects:
+                        del self._z_index_objects[z_index]
+                    self._z_index_objects.setdefault(z_index + 1, []).append(go)
+                    break
 
-    def find_selected_graphical_object(self, mouse_point: Point): ...
+        self.notify_listeners()
 
-    def find_selected_hot_point(self, object: GraphicalObject, mouse_point: Point): ...
+    def decrease_z(self, go: GraphicalObject):
+        if go not in self.__sorted_objects():
+            return
+
+        if go in self._objects:
+            self._objects.remove(go)
+            z_objs = self._z_index_objects.setdefault(-1, [])
+            self._z_index_objects[-1] = [go, *z_objs]
+        else:
+            for z_index, objects in self._z_index_objects.items():
+                if go in objects:
+                    objects.remove(go)
+                    if not objects:
+                        del self._z_index_objects[z_index]
+                    z_objs = self._z_index_objects.setdefault(z_index - 1, [])
+                    self._z_index_objects[z_index - 1] = [go, *z_objs]
+                    break
+
+        self.notify_listeners()
+
+    def find_selected_graphical_object(self, mouse_point: Point):
+        closest_object = None
+        closest_distance = float("inf")
+        for obj in self.__sorted_objects():
+            distance = obj.selection_distance(mouse_point)
+            if distance < closest_distance and distance <= self.SELECTION_PROXIMITY:
+                closest_distance = distance
+                closest_object = obj
+        return closest_object
+
+    def find_selected_hot_point(self, object: GraphicalObject, mouse_point: Point):
+        closest_hot_point_index = -1
+        closest_distance = float("inf")
+        for i in range(object.get_number_of_hot_points()):
+            distance = object.get_hot_point_distance(i, mouse_point)
+            if distance < closest_distance and distance <= self.SELECTION_PROXIMITY:
+                closest_distance = distance
+                closest_hot_point_index = i
+        return closest_hot_point_index

@@ -26,6 +26,7 @@
 
 from typing import TYPE_CHECKING
 
+from rectangle import Rectangle
 from renderer import Renderer
 
 if TYPE_CHECKING:
@@ -34,6 +35,8 @@ if TYPE_CHECKING:
 
 
 class G2DRenderer(Renderer):
+    HOT_POINT_SIZE = 8
+
     def __init__(self, g2d: Canvas):
         self.__g2d = g2d
 
@@ -43,3 +46,18 @@ class G2DRenderer(Renderer):
     def fill_polygon(self, points: list[Point]):
         coords = [p.get() for p in points]
         self.__g2d.create_polygon(coords, fill="blue", outline="red")
+
+    def draw_bounding_box(self, points: list[Point]):
+        coords = [p.get() for p in points]
+        self.__g2d.create_polygon(coords, fill="", outline="blue")
+
+    def draw_hot_points(self, points: list[Point]):
+        for p in points:
+            x, y = p.get()
+            print(f"Drawing hot point at ({x}, {y})")
+            top_left = (x - self.HOT_POINT_SIZE // 2, y - self.HOT_POINT_SIZE // 2)
+            hp_rectangle = Rectangle(
+                *top_left, self.HOT_POINT_SIZE, self.HOT_POINT_SIZE
+            )
+            coords = [p.get() for p in hp_rectangle.get_points()]
+            self.__g2d.create_polygon(coords, fill="", outline="blue")
