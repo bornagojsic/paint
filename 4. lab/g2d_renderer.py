@@ -61,3 +61,8 @@ class G2DRenderer(Renderer):
             )
             coords = [p.get() for p in hp_rectangle.get_points()]
             self.__g2d.create_polygon(coords, fill="", outline="blue")
+
+    def draw_polyline(self, points: list[Point]):
+        coords = [p.get() for p in points]
+        for i in range(len(coords) - 1):
+            self.__g2d.create_line(*coords[i], *coords[i + 1], fill="red")

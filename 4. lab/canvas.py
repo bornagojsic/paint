@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from document_model_listener import DocumentModelListener
 from g2d_renderer import G2DRenderer
 from point import Point
-from state.idle import IdleState
+from state import IdleState
 
 if TYPE_CHECKING:
     from document_model import DocumentModel
@@ -36,12 +36,20 @@ class Canvas(tk.Frame, DocumentModelListener):
 
         self._canvas.bind("w", lambda _: self._gui.destroy())
         self._canvas.bind("<Button-1>", self._on_mouse_down)
+        self._canvas.bind("<ButtonRelease-1>", self._on_mouse_up)
         self._canvas.bind("<B1-Motion>", self._on_mouse_dragged)
         self._canvas.bind("<Escape>", lambda _: self._gui.set_state(IdleState()))
         self._canvas.bind("<Key>", self._on_key_pressed)
 
     def _on_mouse_down(self, event: tk.Event):
         self._gui.get_state().mouse_down(
+            Point(event.x, event.y),
+            shift_down=self._shift_used(event),
+            ctrl_down=self._ctrl_used(event),
+        )
+
+    def _on_mouse_up(self, event: tk.Event):
+        self._gui.get_state().mouse_up(
             Point(event.x, event.y),
             shift_down=self._shift_used(event),
             ctrl_down=self._ctrl_used(event),

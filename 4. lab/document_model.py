@@ -73,6 +73,7 @@ from graphical_objects.listener import GraphicalObjectListener
 
 if TYPE_CHECKING:
     from document_model_listener import DocumentModelListener
+    from graphical_objects.eraser_path import EraserPath
     from graphical_objects.interface import GraphicalObject
     from point import Point
 
@@ -110,11 +111,9 @@ class DocumentModel(GraphicalObjectListener):
             self.notify_listeners()
 
     def graphical_object_changed(self, go: GraphicalObject):
-        print(f"Graphical object changed: {go}")
         self.notify_listeners()
 
     def graphical_object_selection_changed(self, go: GraphicalObject):
-        print(f"Graphical object selection changed: {go}")
         if go.is_selected():
             if go not in self._selected_objects:
                 self._selected_objects.append(go)
@@ -167,7 +166,6 @@ class DocumentModel(GraphicalObjectListener):
 
     def list(self):
         self._ro_objects = tuple(self.__sorted_objects())
-        print("[INFO]:\tListing objects in model: ", len(self._ro_objects))
         return self._ro_objects
 
     def add_document_model_listener(self, listener: DocumentModelListener):
@@ -284,5 +282,21 @@ class DocumentModel(GraphicalObjectListener):
             child_copy.set_selected(True)
 
         self.remove_graphical_object(selected_object)
+
+        self.notify_listeners()
+
+    # TODO: myb vrati na obj.selection_distance(mouse_point) <= self.SELECTION_PROXIMITY i vidi kako radi
+    def erase(self, eraser_path: EraserPath):
+        points = eraser_path.get_points()
+        objects_to_remove = set()
+
+        for obj in self.__sorted_objects():
+            for point in points:
+                if obj.selection_distance(point) <= self.SELECTION_PROXIMITY:
+                    objects_to_remove.add(obj)
+                    break
+
+        for obj in objects_to_remove:
+            self.remove_graphical_object(obj)
 
         self.notify_listeners()

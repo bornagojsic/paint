@@ -11,24 +11,22 @@ if TYPE_CHECKING:
 
 class SelectShapeState(State):
     def __init__(self, document_model: DocumentModel):
-        self._document_model = document_model
+        self._model = document_model
 
     def __unselect_all(self):
-        for obj in self._document_model.get_selected_objects():
+        for obj in self._model.get_selected_objects():
             obj.set_selected(False)
             for i in range(obj.get_number_of_hot_points()):
                 obj.set_hot_point_selected(i, False)
 
     def mouse_down(self, mouse_point: Point, shift_down: bool, ctrl_down: bool):
-        selected_object = self._document_model.find_selected_graphical_object(
-            mouse_point
-        )
+        selected_object = self._model.find_selected_graphical_object(mouse_point)
         if not ctrl_down:
             self.__unselect_all()
         if selected_object:
             print(f"Selected object: {selected_object}")
             selected_object.set_selected(True)
-            selected_hp = self._document_model.find_selected_hot_point(
+            selected_hp = self._model.find_selected_hot_point(
                 selected_object, mouse_point
             )
             if selected_hp != -1:
@@ -39,7 +37,7 @@ class SelectShapeState(State):
 
     def mouse_dragged(self, mouse_point: Point):
         print(f"Mouse dragged to: {mouse_point}")
-        selected_objects = self._document_model.get_selected_objects()
+        selected_objects = self._model.get_selected_objects()
         if selected_objects:
             for obj in selected_objects:
                 hp_count = obj.get_number_of_hot_points()
@@ -50,12 +48,12 @@ class SelectShapeState(State):
 
     def key_pressed(self, key_code: int):
         print(f"Key pressed: {key_code}")
-        selected_objects = self._document_model.get_selected_objects()
+        selected_objects = self._model.get_selected_objects()
 
         if key_code == 42:  # G key
-            self._document_model.group_selected_objects()
+            self._model.group_selected_objects()
         elif key_code == 30:  # U key
-            self._document_model.ungroup_selected_objects()
+            self._model.ungroup_selected_objects()
         elif key_code == 113:  # left arrow key
             for obj in selected_objects:
                 obj.translate(Point(-1, 0))
@@ -70,17 +68,17 @@ class SelectShapeState(State):
                 obj.translate(Point(0, 1))
         elif key_code == 21 or key_code == 86:  # plus key
             for obj in selected_objects:
-                self._document_model.increase_z(obj)
+                self._model.increase_z(obj)
         elif key_code == 61 or key_code == 82:  # minus key
             for obj in selected_objects:
-                self._document_model.decrease_z(obj)
+                self._model.decrease_z(obj)
 
     def after_draw(self, r: Renderer, go: Optional[GraphicalObject] = None):
         if go and go.is_selected():
             print(f"Drawing selection outline for: {go}")
             r.draw_bounding_box(go.get_bounding_box().get_points())
         elif go is None:
-            selected_objects = self._document_model.get_selected_objects()
+            selected_objects = self._model.get_selected_objects()
             if len(selected_objects) == 1:
                 selected_object = selected_objects[0]
                 hot_points = [
@@ -92,4 +90,5 @@ class SelectShapeState(State):
                 )
                 r.draw_hot_points(hot_points)
 
-    def on_leaving(self): ...
+    def on_leaving(self):
+        self.__unselect_all()

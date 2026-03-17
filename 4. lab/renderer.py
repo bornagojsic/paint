@@ -15,3 +15,6 @@ class Renderer(ABC):
 
     @abstractmethod
     def draw_hot_points(self, points: list[Point]): ...
+
+    @abstractmethod
+    def draw_polyline(self, points: list[Point]): ...

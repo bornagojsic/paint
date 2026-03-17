@@ -3,13 +3,21 @@ from typing import TYPE_CHECKING, Optional
 
 from canvas import Canvas
 from document_model import DocumentModel
-from state.add_shape import AddShapeState
-from state.idle import IdleState
-from state.select_shape import SelectShapeState
+from state import AddShapeState, EraserState, IdleState, SelectShapeState
 
 if TYPE_CHECKING:
     from graphical_objects.interface import GraphicalObject
-    from state.interface import State
+    from state import State
+
+
+## decorator
+def activate_button(self: "GUI", func, key: str | None = None):
+    def wrapper(*args, **kwargs):
+        func(*args, **kwargs)
+        if key and key in self._toolbar_buttons:
+            self._set_active_button(self._toolbar_buttons[key])
+
+    return wrapper
 
 
 class GUI:
@@ -24,6 +32,7 @@ class GUI:
         self._root = tk.Tk()
 
         self._toolbar: tk.Frame = tk.Frame(self._root)
+        self._toolbar.bind("<Button-1>", self._set_state_idle)
         self._toolbar.pack(side="top", fill="x")
         self.__generate_toolbar_buttons()
 
@@ -56,14 +65,16 @@ class GUI:
                 "name": "Selektiraj",
                 "command": self.__on_select_click,
             },
-            "eraser": {"name": "Brisalo", "command": lambda: ...},
+            "eraser": {"name": "Brisalo", "command": self.__on_eraser_click},
         }
 
         self._toolbar_buttons: dict[str, tk.Button] = {}
 
         for key, button_def in toolbar_buttons.items():
             button = tk.Button(
-                self._toolbar, text=button_def["name"], command=button_def["command"]
+                self._toolbar,
+                text=button_def["name"],
+                command=activate_button(self, button_def["command"], key),
             )
             button.pack(side=tk.LEFT, padx=2, pady=2)
             self._toolbar_buttons[key] = button
@@ -74,31 +85,34 @@ class GUI:
         return self.__current_state
 
     def set_state(self, state: State, new_active_button: Optional[tk.Button] = None):
-        print(
-            f"Setting state to: {state.__class__.__name__}, new active button: {new_active_button}"
-        )
-        if new_active_button is not None:
-            if new_active_button == self._active_button:
-                return
-            self._active_button = new_active_button
-            for button in self._toolbar_buttons.values():
-                button.config(relief=tk.RAISED)
-            new_active_button.config(relief=tk.SUNKEN)
+        self.__current_state.on_leaving()
+
+        if isinstance(state, IdleState):
+            self._set_active_button(None)
 
         self.__current_state = state
 
+    def _set_active_button(self, button: Optional[tk.Button]):
+        if button == self._active_button:
+            return
+        self._active_button = button
+        for btn in self._toolbar_buttons.values():
+            btn.config(relief=tk.RAISED)
+
+        if button is not None:
+            button.config(relief=tk.SUNKEN)
+
+    def _set_state_idle(self, *_):
+        self.set_state(IdleState())
+
     def __on_shape_click(self, prototype: GraphicalObject):
-        new_active_button = self._toolbar_buttons[
-            self.__get_shape_button_name(prototype)
-        ]
-        self.set_state(
-            AddShapeState(self._document_model, prototype), new_active_button
-        )
+        self.set_state(AddShapeState(self._document_model, prototype))
 
     def __on_select_click(self):
-        self.set_state(
-            SelectShapeState(self._document_model), self._toolbar_buttons["select"]
-        )
+        self.set_state(SelectShapeState(self._document_model))
+
+    def __on_eraser_click(self):
+        self.set_state(EraserState(self._document_model))
 
     def destroy(self):
         self._root.destroy()
