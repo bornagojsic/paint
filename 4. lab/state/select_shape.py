@@ -5,7 +5,7 @@ from point import Point
 from state.interface import State
 
 if TYPE_CHECKING:
-    from graphical_objects.interface import GraphicalObject
+    from graphical_objects import GraphicalObject
     from renderer import Renderer
 
 

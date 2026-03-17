@@ -68,13 +68,11 @@
 
 from typing import TYPE_CHECKING
 
-from graphical_objects.composite import CompositeShape
-from graphical_objects.listener import GraphicalObjectListener
+from graphical_objects import CompositeShape, GraphicalObjectListener
 
 if TYPE_CHECKING:
     from document_model_listener import DocumentModelListener
-    from graphical_objects.eraser_path import EraserPath
-    from graphical_objects.interface import GraphicalObject
+    from graphical_objects import EraserPath, GraphicalObject
     from point import Point
 
 
@@ -285,7 +283,6 @@ class DocumentModel(GraphicalObjectListener):
 
         self.notify_listeners()
 
-    # TODO: myb vrati na obj.selection_distance(mouse_point) <= self.SELECTION_PROXIMITY i vidi kako radi
     def erase(self, eraser_path: EraserPath):
         points = eraser_path.get_points()
         objects_to_remove = set()

@@ -6,7 +6,7 @@ from document_model import DocumentModel
 from state import AddShapeState, EraserState, IdleState, SelectShapeState
 
 if TYPE_CHECKING:
-    from graphical_objects.interface import GraphicalObject
+    from graphical_objects import GraphicalObject
     from state import State
 
 

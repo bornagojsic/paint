@@ -1,11 +1,11 @@
 from typing import TYPE_CHECKING, Optional
 
-from graphical_objects.eraser_path import EraserPath
+from graphical_objects import EraserPath
 from state.interface import State
 
 if TYPE_CHECKING:
     from document_model import DocumentModel
-    from graphical_objects.interface import GraphicalObject
+    from graphical_objects import GraphicalObject
     from point import Point
     from renderer import Renderer
 

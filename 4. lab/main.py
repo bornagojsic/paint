@@ -1,5 +1,4 @@
-from graphical_objects.line_segment import LineSegment
-from graphical_objects.oval import Oval
+from graphical_objects import LineSegment, Oval
 from gui import GUI
 from point import Point
 

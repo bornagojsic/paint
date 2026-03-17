@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Optional
 from state.interface import State
 
 if TYPE_CHECKING:
-    from graphical_objects.interface import GraphicalObject
+    from graphical_objects import GraphicalObject
     from point import Point
     from renderer import Renderer
 
