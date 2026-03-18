@@ -9,7 +9,9 @@ if TYPE_CHECKING:
 class SVGRenderer(Renderer):
     def __init__(self, file_name: str):
         self._file_name = file_name
-        self._lines = ['<svg xmlns="http://www.w3.org/2000/svg" version="1.1">']
+        self._lines = [
+            '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">'
+        ]
 
     def close(self):
         self._lines.append("</svg>")
