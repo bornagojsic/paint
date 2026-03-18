@@ -39,16 +39,18 @@ class SelectShapeState(State):
     def mouse_dragged(self, mouse_point: Point):
         selected_objects = self._model.get_selected_objects()
         if selected_objects:
-            for obj in selected_objects:
+            hp_selected = False
+            if len(selected_objects) == 1:
+                obj = selected_objects[0]
                 hp_count = obj.get_number_of_hot_points()
                 for i in range(hp_count):
                     if obj.is_hot_point_selected(i):
+                        hp_selected = True
                         obj.set_hot_point(i, mouse_point)
                         break
-                else:
-                    if self._mouse_drag_start:
-                        delta = mouse_point.difference(self._mouse_drag_start)
-                        obj.translate(delta)
+            if self._mouse_drag_start and not hp_selected:
+                delta = mouse_point.difference(self._mouse_drag_start)
+                [obj.translate(delta) for obj in selected_objects]
             self._mouse_drag_start = mouse_point
 
     def key_pressed(self, key_code: int):
