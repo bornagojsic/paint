@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Optional
 
 from document_model import DocumentModel
 from point import Point
+from rectangle import Rectangle
 from state.interface import State
 
 if TYPE_CHECKING:
@@ -76,8 +77,12 @@ class SelectShapeState(State):
     def after_draw(self, r: Renderer, go: Optional[GraphicalObject] = None):
         if go and go.is_selected():
             print(f"Drawing selection outline for: {go}")
-            r.draw_bounding_box(go.get_bounding_box().get_points())
+            bb_points = go.get_bounding_box().get_points()
+            no_of_points = len(bb_points)
+            for i in range(no_of_points):
+                r.draw_line(bb_points[i], bb_points[(i + 1) % no_of_points])
         elif go is None:
+            # TODO: refactor this all
             selected_objects = self._model.get_selected_objects()
             if len(selected_objects) == 1:
                 selected_object = selected_objects[0]
@@ -85,10 +90,21 @@ class SelectShapeState(State):
                     selected_object.get_hot_point(i)
                     for i in range(selected_object.get_number_of_hot_points())
                 ]
-                print(
-                    f"Drawing hot points for: {selected_object}, hot points: {hot_points}"
-                )
-                r.draw_hot_points(hot_points)
+                for hp in hot_points:
+                    x, y = hp.get()
+                    top_left = (
+                        x - r.HOT_POINT_SIZE // 2,
+                        y - r.HOT_POINT_SIZE // 2,
+                    )
+                    hp_rectangle = Rectangle(
+                        *top_left, r.HOT_POINT_SIZE, r.HOT_POINT_SIZE
+                    )
+                    hp_rectangle_points = hp_rectangle.get_points()
+                    for i in range(len(hp_rectangle_points)):
+                        r.draw_line(
+                            hp_rectangle_points[i],
+                            hp_rectangle_points[(i + 1) % len(hp_rectangle_points)],
+                        )
 
     def on_leaving(self):
         self.__unselect_all()

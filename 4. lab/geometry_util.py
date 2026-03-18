@@ -19,6 +19,11 @@ class GeometryUtil:
             p_s.get_x() * line.get_x() + p_s.get_y() * line.get_y()
         ) / line_length**2
 
+        if alpha < 0:
+            alpha = 0
+        elif alpha > 1:
+            alpha = 1
+
         t = s + alpha * line
 
         pt = GeometryUtil.distance_from_point(p, t)

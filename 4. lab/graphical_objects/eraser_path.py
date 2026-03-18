@@ -26,7 +26,8 @@ class EraserPath(AbstractGraphicalObject):
         self._notify_listeners()
 
     def render(self, r: Renderer):
-        r.draw_polyline(self._path)
+        for i in range(len(self._path) - 1):
+            r.draw_line(self._path[i], self._path[i + 1])
 
     def selection_distance(self, mouse_point: Point) -> float:
         return float("inf")

@@ -1,9 +1,11 @@
 import tkinter as tk
+from tkinter import filedialog
 from typing import TYPE_CHECKING, Optional
 
 from canvas import Canvas
 from document_model import DocumentModel
 from state import AddShapeState, EraserState, IdleState, SelectShapeState
+from svg_renderer import SVGRenderer
 
 if TYPE_CHECKING:
     from graphical_objects import GraphicalObject
@@ -13,9 +15,9 @@ if TYPE_CHECKING:
 ## decorator
 def activate_button(self: "GUI", func, key: str | None = None):
     def wrapper(*args, **kwargs):
-        func(*args, **kwargs)
         if key and key in self._toolbar_buttons:
             self._set_active_button(self._toolbar_buttons[key])
+        func(*args, **kwargs)
 
     return wrapper
 
@@ -53,7 +55,7 @@ class GUI:
         toolbar_buttons = {
             "load": {"name": "Učitaj", "command": lambda: ...},
             "save": {"name": "Pohrani", "command": lambda: ...},
-            "svg_export": {"name": "SVG export", "command": lambda: ...},
+            "svg_export": {"name": "SVG export", "command": self.__on_svg_export_click},
             **{
                 self.__get_shape_button_name(o): {
                     "name": o.get_shape_name(),
@@ -84,7 +86,7 @@ class GUI:
     def get_state(self) -> State:
         return self.__current_state
 
-    def set_state(self, state: State, new_active_button: Optional[tk.Button] = None):
+    def set_state(self, state: State):
         self.__current_state.on_leaving()
 
         if isinstance(state, IdleState):
@@ -93,6 +95,7 @@ class GUI:
         self.__current_state = state
 
     def _set_active_button(self, button: Optional[tk.Button]):
+        print(f"Setting active button: {button}")
         if button == self._active_button:
             return
         self._active_button = button
@@ -113,6 +116,23 @@ class GUI:
 
     def __on_eraser_click(self):
         self.set_state(EraserState(self._document_model))
+
+    # TODO: check for how to set dimensions
+    def __on_svg_export_click(self):
+        file_name = filedialog.asksaveasfilename(
+            defaultextension=".svg",
+            filetypes=[("SVG files", "*.svg"), ("All files", "*.*")],
+        )
+        if not file_name:
+            self._set_state_idle()
+            return
+
+        r = SVGRenderer(file_name)
+        for o in self._document_model.list():
+            o.render(r)
+        r.close()
+
+        self._set_active_button(None)
 
     def destroy(self):
         self._root.destroy()
