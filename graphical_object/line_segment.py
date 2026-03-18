@@ -18,7 +18,7 @@ class LineSegment(AbstractGraphicalObject):
         super().__init__(self._hot_points)
 
     def get_shape_name(self):
-        return "Linija"
+        return "Line Segment"
 
     def get_shape_id(self) -> str:
         return "@LINE"

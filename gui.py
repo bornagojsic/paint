@@ -54,8 +54,8 @@ class GUI:
 
     def __generate_toolbar_buttons(self):
         toolbar_buttons = {
-            "load": {"name": "Učitaj", "command": self.__on_load_click},
-            "save": {"name": "Pohrani", "command": self.__on_save_click},
+            "load": {"name": "Load", "command": self.__on_load_click},
+            "save": {"name": "Save", "command": self.__on_save_click},
             "svg_export": {"name": "SVG export", "command": self.__on_svg_export_click},
             **{
                 self.__get_shape_button_name(o): {
@@ -65,10 +65,10 @@ class GUI:
                 for o in self._graphical_objects
             },
             "select": {
-                "name": "Selektiraj",
+                "name": "Select",
                 "command": self.__on_select_click,
             },
-            "eraser": {"name": "Brisalo", "command": self.__on_eraser_click},
+            "eraser": {"name": "Eraser", "command": self.__on_eraser_click},
         }
 
         self._toolbar_buttons: dict[str, tk.Button] = {}
