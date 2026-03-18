@@ -6,13 +6,14 @@ from rectangle import Rectangle
 from state.interface import State
 
 if TYPE_CHECKING:
-    from graphical_objects import GraphicalObject
+    from graphical_object import GraphicalObject
     from renderer import Renderer
 
 
 class SelectShapeState(State):
     def __init__(self, document_model: DocumentModel):
         self._model = document_model
+        self._mouse_drag_start: Optional[Point] = None
 
     def __unselect_all(self):
         for obj in self._model.get_selected_objects():
@@ -25,19 +26,16 @@ class SelectShapeState(State):
         if not ctrl_down:
             self.__unselect_all()
         if selected_object:
-            print(f"Selected object: {selected_object}")
             selected_object.set_selected(True)
             selected_hp = self._model.find_selected_hot_point(
                 selected_object, mouse_point
             )
             if selected_hp != -1:
-                print(f"Selected hot point in object: {selected_object}")
                 selected_object.set_hot_point_selected(selected_hp, True)
 
     def mouse_up(self, mouse_point: Point, shift_down: bool, ctrl_down: bool): ...
 
     def mouse_dragged(self, mouse_point: Point):
-        print(f"Mouse dragged to: {mouse_point}")
         selected_objects = self._model.get_selected_objects()
         if selected_objects:
             for obj in selected_objects:
@@ -48,7 +46,6 @@ class SelectShapeState(State):
                         break
 
     def key_pressed(self, key_code: int):
-        print(f"Key pressed: {key_code}")
         selected_objects = self._model.get_selected_objects()
 
         if key_code == 42:  # G key
@@ -76,7 +73,6 @@ class SelectShapeState(State):
 
     def after_draw(self, r: Renderer, go: Optional[GraphicalObject] = None):
         if go and go.is_selected():
-            print(f"Drawing selection outline for: {go}")
             bb_points = go.get_bounding_box().get_points()
             no_of_points = len(bb_points)
             for i in range(no_of_points):

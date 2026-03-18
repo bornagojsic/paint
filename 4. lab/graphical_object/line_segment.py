@@ -1,12 +1,12 @@
 from typing import TYPE_CHECKING
 
 from geometry_util import GeometryUtil
-from graphical_objects.abstract_go import AbstractGraphicalObject
+from graphical_object.abstract_go import AbstractGraphicalObject
 from point import Point
 from rectangle import Rectangle
 
 if TYPE_CHECKING:
-    from graphical_objects.interface import GraphicalObject
+    from graphical_object.interface import GraphicalObject
     from renderer import Renderer
 
 
@@ -20,8 +20,8 @@ class LineSegment(AbstractGraphicalObject):
     def get_shape_name(self):
         return "Linija"
 
-    ## TODO: Implementirati
-    def get_shape_id(self) -> int: ...
+    def get_shape_id(self) -> str:
+        return "@LINE"
 
     def duplicate(self):
         start_point, end_point = self._hot_points
@@ -42,10 +42,15 @@ class LineSegment(AbstractGraphicalObject):
         top_left = Point(center.get_x() - a, center.get_y() - b)
         return Rectangle(*top_left.get(), 2 * a, 2 * b)
 
-    ## TODO: Implementirati ...
-    def load(self, stack: list[GraphicalObject], data: str): ...
+    def load(self, stack: list[GraphicalObject], data: str):
+        id, x1, y1, x2, y2 = data.split()
+        if id != self.get_shape_id():
+            raise ValueError(f"Invalid shape id: {id}")
+        self._hot_points[0] = Point(float(x1), float(y1))
+        self._hot_points[1] = Point(float(x2), float(y2))
+        new_line = self.duplicate()
+        stack.append(new_line)
 
-    def save(self, rows: list[str]): ...
-
-    def __str__(self):
-        return f"LineSegment from {self._hot_points[0]} to {self._hot_points[1]}"
+    def save(self, rows: list[str]):
+        row = f"{self.get_shape_id()} {self._hot_points[0].get_x()} {self._hot_points[0].get_y()} {self._hot_points[1].get_x()} {self._hot_points[1].get_y()}"
+        rows.append(row)

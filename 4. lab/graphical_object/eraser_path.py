@@ -1,11 +1,11 @@
 from typing import TYPE_CHECKING
 
-from graphical_objects.abstract_go import AbstractGraphicalObject
+from graphical_object.abstract_go import AbstractGraphicalObject
 from point import Point
 from rectangle import Rectangle
 
 if TYPE_CHECKING:
-    from graphical_objects.interface import GraphicalObject
+    from graphical_object.interface import GraphicalObject
     from renderer import Renderer
 
 
@@ -37,7 +37,7 @@ class EraserPath(AbstractGraphicalObject):
 
     def get_shape_name(self): ...
 
-    def get_shape_id(self) -> int: ...
+    def get_shape_id(self) -> str: ...
 
     def duplicate(self): ...
 

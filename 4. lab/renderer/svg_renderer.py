@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from renderer import Renderer
+from renderer.interface import Renderer
 
 if TYPE_CHECKING:
     from point import Point

@@ -1,16 +1,16 @@
 from typing import TYPE_CHECKING
 
-from graphical_objects.abstract_go import AbstractGraphicalObject
+from graphical_object.abstract_go import AbstractGraphicalObject
 from point import Point
 from rectangle import Rectangle
 
 if TYPE_CHECKING:
-    from graphical_objects.interface import GraphicalObject
+    from graphical_object.interface import GraphicalObject
     from renderer import Renderer
 
 
 class CompositeShape(AbstractGraphicalObject):
-    def __init__(self, shapes: list[GraphicalObject]):
+    def __init__(self, shapes: list[GraphicalObject] = []):
         super().__init__(hot_points=[])
         self._shapes = [shape.duplicate() for shape in shapes]
 
@@ -20,7 +20,8 @@ class CompositeShape(AbstractGraphicalObject):
     def get_shape_name(self):
         return "Kompozitni oblik"
 
-    def get_shape_id(self) -> int: ...
+    def get_shape_id(self) -> str:
+        return "@COMP"
 
     def duplicate(self):
         duplicated_shapes = [shape.duplicate() for shape in self._shapes]
@@ -51,9 +52,16 @@ class CompositeShape(AbstractGraphicalObject):
         height = max_y - min_y
         return Rectangle(min_x, min_y, width, height)
 
-    def load(self, stack: list[GraphicalObject], data: str): ...
+    def load(self, stack: list[GraphicalObject], data: str):
+        id, n = data.split()
+        if id != self.get_shape_id():
+            raise ValueError(f"Invalid shape id: {id}")
+        self._shapes = [stack.pop() for _ in range(int(n))]
+        new_composite = self.duplicate()
+        stack.append(new_composite)
 
-    def save(self, rows: list[str]): ...
-
-    def __repr__(self):
-        return f"CompositeShape(shapes={self._shapes})"
+    def save(self, rows: list[str]):
+        for shape in self._shapes:
+            shape.save(rows)
+        row = f"{self.get_shape_id()} {len(self._shapes)}"
+        rows.append(row)

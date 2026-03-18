@@ -26,6 +26,3 @@ class Point:
 
     def __rmul__(self, scalar: float):
         return Point(self.__x * scalar, self.__y * scalar)
-
-    def __repr__(self):
-        return f"({self.__x}, {self.__y})"

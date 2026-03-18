@@ -5,7 +5,7 @@ from point import Point
 from rectangle import Rectangle
 
 if TYPE_CHECKING:
-    from graphical_objects.listener import GraphicalObjectListener
+    from graphical_object.listener import GraphicalObjectListener
     from renderer import Renderer
 
 

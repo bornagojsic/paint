@@ -68,11 +68,11 @@
 
 from typing import TYPE_CHECKING
 
-from graphical_objects import CompositeShape, GraphicalObjectListener
+from graphical_object import CompositeShape, GraphicalObjectListener
 
 if TYPE_CHECKING:
     from document_model_listener import DocumentModelListener
-    from graphical_objects import EraserPath, GraphicalObject
+    from graphical_object import EraserPath, GraphicalObject
     from point import Point
 
 
@@ -101,7 +101,6 @@ class DocumentModel(GraphicalObjectListener):
         if obj in self.__sorted_objects():
             return
 
-        print(f"Adding {obj} to model")
         if obj not in self.__sorted_objects():
             self._objects.append(obj)
             self._ro_objects = tuple(self.__sorted_objects())
@@ -250,7 +249,6 @@ class DocumentModel(GraphicalObjectListener):
 
     def group_selected_objects(self):
         selected_objects = self.get_selected_objects()
-        print(f"Grouping selected objects: {selected_objects}")
         if len(selected_objects) <= 1:
             return
 

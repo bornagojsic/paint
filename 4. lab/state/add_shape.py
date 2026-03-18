@@ -4,7 +4,7 @@ from state.interface import State
 
 if TYPE_CHECKING:
     from document_model import DocumentModel
-    from graphical_objects import GraphicalObject
+    from graphical_object import GraphicalObject
     from point import Point
     from renderer import Renderer
 
@@ -18,7 +18,6 @@ class AddShapeState(State):
         new_object = self._prototype.duplicate()
         new_object.translate(mouse_point)
         self._model.add_graphical_object(new_object)
-        print(f"Adding new object: {new_object}, mouse point: {mouse_point}")
 
     def mouse_up(self, mouse_point: Point, shift_down: bool, ctrl_down: bool): ...
 

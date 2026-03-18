@@ -2,8 +2,8 @@ import tkinter as tk
 from typing import TYPE_CHECKING
 
 from document_model_listener import DocumentModelListener
-from g2d_renderer import G2DRenderer
 from point import Point
+from renderer import G2DRenderer
 from state import IdleState
 
 if TYPE_CHECKING:

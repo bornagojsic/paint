@@ -21,7 +21,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from graphical_objects import GraphicalObject
+    from graphical_object import GraphicalObject
     from point import Point
     from renderer import Renderer
 

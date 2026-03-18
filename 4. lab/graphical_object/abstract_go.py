@@ -2,11 +2,11 @@ from abc import ABC
 from typing import TYPE_CHECKING
 
 from geometry_util import GeometryUtil
-from graphical_objects.interface import GraphicalObject
+from graphical_object.interface import GraphicalObject
 from point import Point
 
 if TYPE_CHECKING:
-    from graphical_objects.listener import GraphicalObjectListener
+    from graphical_object.listener import GraphicalObjectListener
 
 
 class AbstractGraphicalObject(GraphicalObject, ABC):
@@ -55,9 +55,7 @@ class AbstractGraphicalObject(GraphicalObject, ABC):
             self._notify_selection_listeners()
 
     def translate(self, delta: Point):
-        print(f"Translating {self} by {delta}")
         self._hot_points = [hp.translate(delta) for hp in self._hot_points]
-        print(f"New hot points: {self._hot_points}")
         self._notify_listeners()
 
     def add_graphical_object_listener(self, listener: GraphicalObjectListener):
