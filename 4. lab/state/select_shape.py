@@ -22,6 +22,7 @@ class SelectShapeState(State):
                 obj.set_hot_point_selected(i, False)
 
     def mouse_down(self, mouse_point: Point, shift_down: bool, ctrl_down: bool):
+        self._mouse_drag_start = mouse_point
         selected_object = self._model.find_selected_graphical_object(mouse_point)
         if not ctrl_down:
             self.__unselect_all()
@@ -44,6 +45,11 @@ class SelectShapeState(State):
                     if obj.is_hot_point_selected(i):
                         obj.set_hot_point(i, mouse_point)
                         break
+                else:
+                    if self._mouse_drag_start:
+                        delta = mouse_point.difference(self._mouse_drag_start)
+                        obj.translate(delta)
+            self._mouse_drag_start = mouse_point
 
     def key_pressed(self, key_code: int):
         selected_objects = self._model.get_selected_objects()
